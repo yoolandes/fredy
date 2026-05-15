@@ -25,9 +25,9 @@
   "type": "module",
   "lint-staged": {
     "*.{js,jsx}": [
-      "yarn lint",
-      "yarn format",
-      "yarn copyright"
+      "npm run lint",
+      "npm run format",
+      "npm run copyright"
     ]
   },
   "main": "index.js",
