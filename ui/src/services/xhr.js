@@ -3,6 +3,13 @@
  * Licensed under Apache-2.0 with Commons Clause and Attribution/Naming Clause
  */
 
+// Global error handler - will be set by App.jsx
+let globalErrorHandler = null;
+
+export function setGlobalErrorHandler(handler) {
+  globalErrorHandler = handler;
+}
+
 /**
  * post something to our backend.
  *
@@ -40,7 +47,19 @@ function executePostOrPutCall(url, contentType, data, isJson, isPost) {
       .then((response) => (isJson ? parseJSON(response) : response))
       .then((response) => resolve(response))
       .catch((error) => {
-        reject(error);
+        // Network error (server down, no connection, etc.)
+        if (error instanceof TypeError || !error.status) {
+          const errorObj = {
+            status: 0,
+            json: { errors: ['Server is unreachable. Please check if the backend is running.'] },
+          };
+          if (globalErrorHandler) {
+            globalErrorHandler(errorObj.json.errors[0]);
+          }
+          reject(errorObj);
+        } else {
+          reject(error);
+        }
       });
   });
 }
@@ -73,7 +92,19 @@ export function xhrGet(url, contentType = 'application/json; charset=utf-8', isJ
       .then((response) => (isJson ? parseJSON(response) : response))
       .then((response) => resolve(response))
       .catch((error) => {
-        reject(error);
+        // Network error (server down, no connection, etc.)
+        if (error instanceof TypeError || !error.status) {
+          const errorObj = {
+            status: 0,
+            json: { errors: ['Server is unreachable. Please check if the backend is running.'] },
+          };
+          if (globalErrorHandler) {
+            globalErrorHandler(errorObj.json.errors[0]);
+          }
+          reject(errorObj);
+        } else {
+          reject(error);
+        }
       });
   });
 }
@@ -128,6 +159,22 @@ function parseJSON(response) {
             json,
           });
         } else {
+          // Handle session expiration - redirect to login
+          if (response.status === 401 && window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          // Handle server errors (502, 503, etc.)
+          if (response.status >= 502 && response.status <= 504) {
+            const errorObj = {
+              status: response.status,
+              json: { errors: ['Server is temporarily unavailable. Please try again later.'] },
+            };
+            if (globalErrorHandler) {
+              globalErrorHandler(errorObj.json.errors[0]);
+            }
+            reject(errorObj);
+            return;
+          }
           reject({
             status: response.status,
             json,

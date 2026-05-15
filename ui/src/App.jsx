@@ -18,7 +18,7 @@ import Jobs from './views/jobs/Jobs';
 
 import './App.less';
 import TrackingModal from './components/tracking/TrackingModal.jsx';
-import { Banner } from '@douyinfe/semi-ui-19';
+import { Banner, Toast } from '@douyinfe/semi-ui-19';
 import VersionBanner from './components/version/VersionBanner.jsx';
 import Listings from './views/listings/Listings.jsx';
 import MapView from './views/listings/Map.jsx';
@@ -29,6 +29,7 @@ import WatchlistManagement from './views/listings/management/WatchlistManagement
 import Dashboard from './views/dashboard/Dashboard.jsx';
 import ListingDetail from './views/listings/ListingDetail.jsx';
 import NewsModal from './components/news/NewsModal.jsx';
+import { setGlobalErrorHandler } from './services/xhr.js';
 
 export default function FredyApp() {
   const actions = useActions();
@@ -36,8 +37,14 @@ export default function FredyApp() {
   const currentUser = useSelector((state) => state.user.currentUser);
   const versionUpdate = useSelector((state) => state.versionUpdate.versionUpdate);
   const settings = useSelector((state) => state.generalSettings.settings);
+  const globalError = useSelector((state) => state.globalError);
 
   useEffect(() => {
+    // Set up global error handler
+    setGlobalErrorHandler((errorMessage) => {
+      actions.global.setGlobalError(errorMessage);
+    });
+
     async function init() {
       await actions.user.getCurrentUser();
       if (!needsLogin()) {
@@ -55,6 +62,17 @@ export default function FredyApp() {
 
     init();
   }, [currentUser?.userId]);
+
+  // Show global error toast
+  useEffect(() => {
+    if (globalError) {
+      Toast.error({
+        content: globalError,
+        duration: 5,
+        onClose: () => actions.global.clearGlobalError(),
+      });
+    }
+  }, [globalError]);
 
   const needsLogin = () => {
     return currentUser == null || Object.keys(currentUser).length === 0;

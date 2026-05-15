@@ -26,6 +26,7 @@ import {
   IconPlusCircle,
   IconUser,
   IconFilter,
+  IconClock,
 } from '@douyinfe/semi-icons';
 
 const SPEC_FILTERS = [
@@ -54,6 +55,7 @@ export default function JobMutator() {
   const defaultShareWithUsers = sourceJob?.shared_with_user ?? [];
   const defaultSpatialFilter = sourceJob?.spatialFilter || null;
   const defaultSpecFilter = sourceJob?.specFilter || null;
+  const defaultIntervalMinutes = sourceJob?.intervalMinutes ?? null;
 
   const [providerToEdit, setProviderToEdit] = useState(null);
   const [providerCreationVisible, setProviderCreationVisibility] = useState(false);
@@ -67,6 +69,7 @@ export default function JobMutator() {
   const [enabled, setEnabled] = useState(defaultEnabled);
   const [spatialFilter, setSpatialFilter] = useState(defaultSpatialFilter);
   const [specFilter, setSpecFilter] = useState(defaultSpecFilter);
+  const [intervalMinutes, setIntervalMinutes] = useState(defaultIntervalMinutes);
   const navigate = useNavigate();
   const actions = useActions();
 
@@ -102,6 +105,7 @@ export default function JobMutator() {
         spatialFilter,
         specFilter,
         enabled,
+        intervalMinutes: intervalMinutes != null && intervalMinutes !== '' ? parseInt(intervalMinutes, 10) : null,
         jobId: jobToBeEdit?.id || null,
       });
       await actions.jobsData.getJobs();
@@ -294,6 +298,20 @@ export default function JobMutator() {
               ))}
             </Select>
           )}
+        </SegmentPart>
+        <Divider margin="1rem" />
+        <SegmentPart
+          Icon={IconClock}
+          name="Job interval (optional)"
+          helpText="Set a custom execution interval in minutes for this job. Leave empty to use the global interval setting."
+        >
+          <Input
+            type="number"
+            placeholder="Leave empty for global interval"
+            value={intervalMinutes ?? ''}
+            onChange={(value) => setIntervalMinutes(value === '' ? null : value)}
+            min={1}
+          />
         </SegmentPart>
         <Divider margin="1rem" />
         <SegmentPart

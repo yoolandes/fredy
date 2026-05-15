@@ -48,9 +48,11 @@ export const useFredyState = create(
           async getDashboard() {
             try {
               const response = await xhrGet('/api/dashboard');
-              set((state) => ({ dashboard: { ...state.dashboard, data: response.json } }));
+              set((state) => ({ dashboard: { ...state.dashboard, data: response.json, error: null } }));
             } catch (Exception) {
               console.error('Error while trying to get resource for /api/dashboard. Error:', Exception);
+              const errorMessage = Exception?.json?.errors?.[0] || 'Failed to load dashboard data';
+              set((state) => ({ dashboard: { ...state.dashboard, error: errorMessage } }));
             }
           },
         },
@@ -354,7 +356,8 @@ export const useFredyState = create(
 
       // Initial state
       const initial = {
-        dashboard: { data: null },
+        dashboard: { data: null, error: null },
+        globalError: null,
         notificationAdapter: [],
         listingsData: {
           totalNumber: 0,
@@ -393,6 +396,14 @@ export const useFredyState = create(
         jobsData: { ...effects.jobsData },
         user: { ...effects.user },
         userSettings: { ...effects.userSettings },
+        global: {
+          setGlobalError(error) {
+            set({ globalError: error });
+          },
+          clearGlobalError() {
+            set({ globalError: null });
+          },
+        },
       };
 
       // Wrap actions to track loading state
