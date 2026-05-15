@@ -21,7 +21,7 @@ ENV NODE_ENV=production \
 COPY package.json package-lock.json ./
 
 # Install dependencies and purge build tools (only needed to compile better-sqlite3)
-RUN npm ci --omit=dev \
+RUN npm ci --omit=dev --legacy-peer-deps \
   && npm cache clean --force
 
 # Pre-download the CloakBrowser stealth Chromium binary (supports x86_64 and arm64)
