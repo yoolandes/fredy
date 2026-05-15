@@ -18,12 +18,11 @@ WORKDIR /fredy
 ENV NODE_ENV=production \
     IS_DOCKER=true
 
-COPY package.json yarn.lock ./
+COPY package.json package-lock.json ./
 
 # Install dependencies and purge build tools (only needed to compile better-sqlite3)
-RUN yarn config set network-timeout 600000 \
-  && yarn --frozen-lockfile \
-  && yarn cache clean
+RUN npm ci --omit=dev \
+  && npm cache clean --force
 
 # Pre-download the CloakBrowser stealth Chromium binary (supports x86_64 and arm64)
 RUN node -e "import('cloakbrowser').then(({ensureBinary}) => ensureBinary())"
@@ -37,7 +36,7 @@ COPY index.html vite.config.js ./
 COPY ui ./ui
 COPY lib ./lib
 
-RUN yarn build:frontend
+RUN npm run build:frontend
 
 COPY index.js ./
 
